@@ -16,18 +16,19 @@ trainer_SST_lambda = {}
 trainer_SST_lambda['de'] = pronunciationTrainer.getTrainer("de")
 trainer_SST_lambda['en'] = pronunciationTrainer.getTrainer("en")
 
-transform = Resample(orig_freq=48000, new_freq=16000)
 
 
 def lambda_handler(event, context):
-
+    print(event)
     data = json.loads(event['body'])
-
     real_text = data['title']
     file_bytes = base64.b64decode(
         data['base64Audio'][22:].encode('utf-8'))
     language = data['language']
-
+    sample_rate = data['sampleRate']
+    print( 'Sample rate: ', sample_rate)
+    transform = Resample(orig_freq=sample_rate, new_freq=16000)
+    print("Transform initialized")
     if len(real_text) == 0:
         return {
             'statusCode': 200,
@@ -39,19 +40,23 @@ def lambda_handler(event, context):
             },
             'body': ''
         }
-
+    print('Real text: ', real_text)
+    
     start = time.time()
     random_file_name = './'+utilsFileIO.generateRandomString()+'.ogg'
     f = open(random_file_name, 'wb')
     f.write(file_bytes)
     f.close()
     print('Time for saving binary in file: ', str(time.time()-start))
+    try:
+        start = time.time()
+        signal, fs = audioread_load(random_file_name)
 
-    start = time.time()
-    signal, fs = audioread_load(random_file_name)
-
-    signal = transform(torch.Tensor(signal)).unsqueeze(0)
-
+        signal = transform(torch.Tensor(signal)).unsqueeze(0)
+    except Exception as e:
+        print('Error in loading file: ', e)
+        return json.dumps({'error': 'Error in loading file'})
+        
     print('Time for loading .ogg file file: ', str(time.time()-start))
 
     result = trainer_SST_lambda[language].processAudioForGivenText(

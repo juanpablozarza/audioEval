@@ -83,6 +83,7 @@ class PronunciationTrainer:
     def processAudioForGivenText(self, recordedAudio: torch.Tensor = None, real_text=None):
 
         start = time.time()
+        print("Starting transcription...")
         recording_transcript, recording_ipa, word_locations = self.getAudioTranscript(
             recordedAudio)
         print('Time for NN to transcript audio: ', str(time.time()-start))
@@ -139,7 +140,6 @@ class PronunciationTrainer:
     ##################### Evaluation Functions ###########################
     def matchSampleAndRecordedWords(self, real_text, recorded_transcript):
         words_estimated = recorded_transcript.split()
-
         if real_text is None:
             words_real = self.current_transcript[0].split()
         else:
@@ -147,7 +147,6 @@ class PronunciationTrainer:
 
         mapped_words, mapped_words_indices = wm.get_best_mapped_words(
             words_estimated, words_real)
-
         real_and_transcribed_words = []
         real_and_transcribed_words_ipa = []
         for word_idx in range(len(words_real)):

@@ -76,7 +76,7 @@ def get_best_path_from_distance_matrix(word_distance_matrix):
             mapped_indices.append(
                 (solver.Value(estimated_words_order[word_idx])))
 
-        return np.array(mapped_indices, dtype=np.int)
+        return np.array(mapped_indices, dtype=int)
     except:
         return []
 
@@ -88,8 +88,7 @@ def get_resulting_string(mapped_indices: np.array, words_estimated: list, words_
     number_of_real_words = len(words_real)
     for word_idx in range(number_of_real_words):
         position_of_real_word_indices = np.where(
-            mapped_indices == word_idx)[0].astype(np.int)
-
+            mapped_indices == word_idx)[0].astype(int)
         if len(position_of_real_word_indices) == 0:
             mapped_words.append(WORD_NOT_FOUND_TOKEN)
             mapped_words_indices.append(-1)
@@ -108,7 +107,7 @@ def get_resulting_string(mapped_indices: np.array, words_estimated: list, words_
             for single_word_idx in position_of_real_word_indices:
                 idx_above_word = single_word_idx >= len(words_estimated)
                 if idx_above_word:
-                    continue
+                    continue                
                 error_word = WordMetrics.edit_distance_python(
                     words_estimated[single_word_idx], words_real[word_idx])
                 if error_word < error:
@@ -127,7 +126,6 @@ def get_best_mapped_words(words_estimated: list, words_real: list) -> list:
 
     word_distance_matrix = get_word_distance_matrix(
         words_estimated, words_real)
-
     start = time.time()
     mapped_indices = get_best_path_from_distance_matrix(word_distance_matrix)
 
@@ -136,7 +134,7 @@ def get_best_mapped_words(words_estimated: list, words_real: list) -> list:
     if len(mapped_indices) == 0 or duration_of_mapping > TIME_THRESHOLD_MAPPING+0.5:
         mapped_indices = (dtw_from_distance_matrix(
             word_distance_matrix)).path[:len(words_estimated), 1]
-
+        
     mapped_words, mapped_words_indices = get_resulting_string(
         mapped_indices, words_estimated, words_real)
 
