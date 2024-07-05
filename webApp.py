@@ -38,8 +38,7 @@ def getNext():
 def convert_mp3_to_base64_ogg(file):
     try:
         # Save the uploaded file securely
-        filename = secure_filename(file.filename)
-        mp3_file_path = f"./{filename}"
+        mp3_file_path = f"./{file.filename}"
         file.save(mp3_file_path)
         
         try:
