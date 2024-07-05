@@ -40,10 +40,11 @@ def convert_mp3_to_base64_ogg(file):
         # Save the uploaded file securely
         mp3_file_path = f"./{file.filename}"
         file.save(mp3_file_path)
-        
+ 
         try:
             # Load the MP3 file
             audio = AudioSegment.from_mp3(mp3_file_path)
+            audio.seek(0)
         except Exception as e:
             raise ValueError(f"Error loading MP3 file: {e}")
         
