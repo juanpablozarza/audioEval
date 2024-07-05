@@ -59,6 +59,7 @@ def convert_mp3_to_base64_ogg(file):
         print("Converted to base64 OGG...")
         return {"output": base64_ogg_str, 'sampleRate': audio.frame_rate}
     except Exception as e:
+        print("Conversion to ogg failed with error:")
         print(e)
         return {"output": str(e)}
 
@@ -67,7 +68,7 @@ def GetAccuracyFromRecordedAudio():
     file = request.files['file']
     title = request.form['title']
     language = request.form['language']
-    fileDict = convert_wav_to_base64_ogg(file)
+    fileDict = convert_mp3_to_base64_ogg(file)
     event = {'body': json.dumps({"title": title, "base64Audio":fileDict["output"],"language": language, "sampleRate": fileDict['sampleRate']})}
     lambda_correct_output = lambdaSpeechToScore.lambda_handler(event, [])
     return lambda_correct_output
