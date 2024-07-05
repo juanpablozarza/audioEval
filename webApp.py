@@ -106,6 +106,7 @@ def GetAccuracyFromRecordedAudio():
     title = request.form['title']
     language = request.form['language']
     fileDict = ''
+    print(file.filename)
     if file.filename.endswith('.3gp'):
         print("3gp")
         fileDict = convert_3gp_to_base64_ogg(file)
