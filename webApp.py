@@ -106,9 +106,12 @@ def GetAccuracyFromRecordedAudio():
     language = request.form['language']
     fileDict = ''
     if file.filename.endswith('.3gp'):
+        print("3gp")
         fileDict = convert_wav_to_base64_3gp(file)
     elif file.filename.endswith('.mp3'):
+        print("mp3")
         fileDict = convert_mp3_to_base64_ogg(file)
+    print(fileDict)
     event = {'body': json.dumps({"title": title, "base64Audio":fileDict["output"],"language": language, "sampleRate": fileDict['sampleRate']})}
     lambda_correct_output = lambdaSpeechToScore.lambda_handler(event, [])
     return lambda_correct_output
