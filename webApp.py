@@ -34,19 +34,28 @@ def getNext():
     event = {'body':  json.dumps(request.get_json(force=True))}
     return lambdaGetSample.lambda_handler(event, [])
 
+
 def convert_mp3_to_base64_ogg(file):
     try:
-        mp3_file_path = f"./{file.filename}"
+        # Save the uploaded file securely
+        filename = secure_filename(file.filename)
+        mp3_file_path = f"./{filename}"
         file.save(mp3_file_path)
         
-        # Load the MP3 file
-        audio = AudioSegment.from_mp3(mp3_file_path)
+        try:
+            # Load the MP3 file
+            audio = AudioSegment.from_mp3(mp3_file_path)
+        except Exception as e:
+            raise ValueError(f"Error loading MP3 file: {e}")
         
         # Create a BytesIO object to hold the OGG data
         ogg_buffer = io.BytesIO()
         
-        # Export the audio data to the OGG format and write it to the BytesIO object
-        audio.export(ogg_buffer, format="ogg")
+        try:
+            # Export the audio data to the OGG format and write it to the BytesIO object
+            audio.export(ogg_buffer, format="ogg")
+        except Exception as e:
+            raise ValueError(f"Error exporting to OGG format: {e}")
         
         # Get the binary data from the BytesIO object
         ogg_data = ogg_buffer.getvalue()
@@ -59,7 +68,6 @@ def convert_mp3_to_base64_ogg(file):
         print("Converted to base64 OGG...")
         return {"output": base64_ogg_str, 'sampleRate': audio.frame_rate}
     except Exception as e:
-        print("Conversion to ogg failed with error:")
         print(e)
         return {"output": str(e)}
 
