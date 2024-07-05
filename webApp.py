@@ -34,33 +34,34 @@ def getNext():
     event = {'body':  json.dumps(request.get_json(force=True))}
     return lambdaGetSample.lambda_handler(event, [])
 
-def convert_wav_to_base64_3gp(file):
+def convert_3gp_to_base64_ogg(file):
     try:
-        wav_file_path = f"./{file.filename}"
-        file.save(wav_file_path)
+        threegp_file_path = f"./{file.filename}"
+        file.save(threegp_file_path)
         
-        # Load the WAV file
-        audio = AudioSegment.from_wav(wav_file_path)
+        # Load the 3GP file
+        audio = AudioSegment.from_file(threegp_file_path, format="3gp")
         
-        # Create a BytesIO object to hold the 3GP data
-        threegp_buffer = io.BytesIO()
+        # Create a BytesIO object to hold the OGG data
+        ogg_buffer = io.BytesIO()
         
-        # Export the audio data to the 3GP format and write it to the BytesIO object
-        audio.export(threegp_buffer, format="3gp")
+        # Export the audio data to the OGG format and write it to the BytesIO object
+        audio.export(ogg_buffer, format="ogg")
         
         # Get the binary data from the BytesIO object
-        threegp_data = threegp_buffer.getvalue()
+        ogg_data = ogg_buffer.getvalue()
         
         # Encode the binary data to base64
-        base64_3gp = base64.b64encode(threegp_data).decode('utf-8')
+        base64_ogg = base64.b64encode(ogg_data).decode('utf-8')
         
         # Create the data URI string
-        base64_3gp_str = f"data:audio/3gp;base64,{base64_3gp}"
-        print("Converted to base64 3GP...")
-        return {"output": base64_3gp_str, 'sampleRate': audio.frame_rate}
+        base64_ogg_str = f"data:audio/ogg;base64,{base64_ogg}"
+        print("Converted to base64 OGG...")
+        return {"output": base64_ogg_str, 'sampleRate': audio.frame_rate}
     except Exception as e:
         print(e)
         return {"output": str(e)}
+
 
 
 
@@ -107,7 +108,7 @@ def GetAccuracyFromRecordedAudio():
     fileDict = ''
     if file.filename.endswith('.3gp'):
         print("3gp")
-        fileDict = convert_wav_to_base64_3gp(file)
+        fileDict = convert_3gp_to_base64_ogg(file)
     elif file.filename.endswith('.mp3'):
         print("mp3")
         fileDict = convert_mp3_to_base64_ogg(file)
