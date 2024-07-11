@@ -18,10 +18,11 @@ trainer_SST_lambda['en'] = pronunciationTrainer.getTrainer("en")
 
 
 
-def lambda_handler(event, context):
+def lambda_handler(event,context):
     print(event)
     data = json.loads(event['body'])
     real_text = data['title']
+    transcription = data['transcription']
     file_bytes = base64.b64decode(
         data['base64Audio'][22:].encode('utf-8'))
     language = data['language']
@@ -60,7 +61,7 @@ def lambda_handler(event, context):
     print('Time for loading .ogg file file: ', str(time.time()-start))
 
     result = trainer_SST_lambda[language].processAudioForGivenText(
-        signal, real_text)
+        signal, real_text, transcription)
 
     start = time.time()
     os.remove(random_file_name)

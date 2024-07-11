@@ -52,11 +52,16 @@ class PronunciationTrainer:
         self.asr_model = asr_model
         self.ipa_converter = word_to_ipa_coverter
 
-    def getTranscriptAndWordsLocations(self, audio_length_in_samples: int):
-
-        audio_transcript = self.asr_model.getTranscript()
+    def getTranscriptAndWordsLocations(self, audio_length_in_samples: int, transcription=None):
+        audio_transcript = ""
+        if transcription is not None:
+            self.asr_model.audio_transcript = transcription
+            audio_transcript = self.asr_model.audio_transcript
+        else:
+            audio_transcript = self.asr_model.getTranscript()
+        print(audio_transcript)
         word_locations_in_samples = self.asr_model.getWordLocations()
-
+        print("Word locations: ", word_locations_in_samples)
         fade_duration_in_samples = 0.05*self.sampling_rate
         word_locations_in_samples = [(int(np.maximum(0, word['start_ts']-fade_duration_in_samples)), int(np.minimum(
             audio_length_in_samples-1, word['end_ts']+fade_duration_in_samples))) for word in word_locations_in_samples]
@@ -80,12 +85,12 @@ class PronunciationTrainer:
 
     ##################### ASR Functions ###########################
 
-    def processAudioForGivenText(self, recordedAudio: torch.Tensor = None, real_text=None):
+    def processAudioForGivenText(self, recordedAudio: torch.Tensor = None, real_text=None, transcription=None):
 
         start = time.time()
         print("Starting transcription...")
         recording_transcript, recording_ipa, word_locations = self.getAudioTranscript(
-            recordedAudio)
+            recordedAudio, transcription)
         print('Time for NN to transcript audio: ', str(time.time()-start))
 
         start = time.time()
@@ -110,7 +115,7 @@ class PronunciationTrainer:
 
         return result
 
-    def getAudioTranscript(self, recordedAudio: torch.Tensor = None):
+    def getAudioTranscript(self, recordedAudio: torch.Tensor = None, transcription=None):
         current_recorded_audio = recordedAudio
 
         current_recorded_audio = self.preprocessAudio(
@@ -119,7 +124,7 @@ class PronunciationTrainer:
         self.asr_model.processAudio(current_recorded_audio)
 
         current_recorded_transcript, current_recorded_word_locations = self.getTranscriptAndWordsLocations(
-            current_recorded_audio.shape[1])
+            current_recorded_audio.shape[1], transcription)
         current_recorded_ipa = self.ipa_converter.convertToPhonem(
             current_recorded_transcript)
 

@@ -104,6 +104,10 @@ def convert_mp3_to_base64_ogg(file):
 def GetAccuracyFromRecordedAudio():
     file = request.files['file']
     title = request.form['title']
+    if 'transcription' in request.form:
+        transcription = request.form['transcription']
+    else:
+        transcription = None
     language = request.form['language']
     fileDict = ''
     print(file.filename)
@@ -113,8 +117,7 @@ def GetAccuracyFromRecordedAudio():
     elif file.filename.endswith('.mp3'):
         print("mp3")
         fileDict = convert_mp3_to_base64_ogg(file)
-    print(fileDict)
-    event = {'body': json.dumps({"title": title, "base64Audio":fileDict["output"],"language": language, "sampleRate": fileDict['sampleRate']})}
+    event = {'body': json.dumps({"title": title, "base64Audio":fileDict["output"],"language": language, "sampleRate": fileDict['sampleRate'], "transcription": transcription})}
     lambda_correct_output = lambdaSpeechToScore.lambda_handler(event, [])
     return lambda_correct_output
 

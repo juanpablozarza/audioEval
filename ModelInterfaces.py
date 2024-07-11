@@ -15,6 +15,7 @@ class IASRModel(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def getTranscript(self) -> str:
+        print("Get transcript")
         """Get the transcripts of the process audio"""
         raise NotImplementedError
 

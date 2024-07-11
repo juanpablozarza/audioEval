@@ -14,6 +14,7 @@ class NeuralASR(ModelInterfaces.IASRModel):
 
     def getTranscript(self) -> str:
         """Get the transcripts of the process audio"""
+        print("Get transcript" , self.audio_transcript)
         assert(self.audio_transcript != None,
                'Can get audio transcripts without having processed the audio')
         return self.audio_transcript
