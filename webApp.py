@@ -34,6 +34,35 @@ def getNext():
     event = {'body':  json.dumps(request.get_json(force=True))}
     return lambdaGetSample.lambda_handler(event, [])
 
+def convert_wav_to_base64_ogg(file):
+    try:
+        # Save the uploaded WAV file
+        wav_file_path = f"./{file.filename}"
+        file.save(wav_file_path)
+        
+        # Load the WAV file using pydub
+        audio = AudioSegment.from_wav(wav_file_path)
+        
+        # Create a BytesIO object to hold the OGG data
+        ogg_buffer = io.BytesIO()
+        
+        # Export the audio data to OGG format
+        audio.export(ogg_buffer, format="ogg")
+        
+        # Get the binary data from the BytesIO object
+        ogg_data = ogg_buffer.getvalue()
+        
+        # Encode the binary data to base64
+        base64_ogg = base64.b64encode(ogg_data).decode('utf-8')
+        
+        # Create the data URI string
+        base64_ogg_str = f"data:audio/ogg;base64,{base64_ogg}"
+        print("Converted WAV to base64 OGG...")
+        return {"output": base64_ogg_str, 'sampleRate': audio.frame_rate}
+    except Exception as e:
+        print(e)
+        return {"output": str(e)}
+
 def convert_3gp_to_base64_ogg(file):
     try:
         threegp_file_path = f"./{file.filename}"
@@ -104,23 +133,34 @@ def convert_mp3_to_base64_ogg(file):
 def GetAccuracyFromRecordedAudio():
     file = request.files['file']
     title = request.form['title']
-    if 'transcription' in request.form:
-        transcription = request.form['transcription']
-    else:
-        transcription = None
+    transcription = request.form.get('transcription', None)
     language = request.form['language']
     fileDict = ''
     print(file.filename)
+    
     if file.filename.endswith('.3gp'):
         print("3gp")
         fileDict = convert_3gp_to_base64_ogg(file)
     elif file.filename.endswith('.mp3'):
         print("mp3")
         fileDict = convert_mp3_to_base64_ogg(file)
-    event = {'body': json.dumps({"title": title, "base64Audio":fileDict["output"],"language": language, "sampleRate": fileDict['sampleRate'], "transcription": transcription})}
+    elif file.filename.endswith('.wav'):
+        print("wav")
+        fileDict = convert_wav_to_base64_ogg(file)
+    else:
+        return {"output": "Unsupported file type"}
+    
+    event = {
+        'body': json.dumps({
+            "title": title,
+            "base64Audio": fileDict["output"],
+            "language": language,
+            "sampleRate": fileDict['sampleRate'],
+            "transcription": transcription
+        })
+    }
     lambda_correct_output = lambdaSpeechToScore.lambda_handler(event, [])
     return lambda_correct_output
-
 
 if __name__ == "__main__":
     language = 'de'

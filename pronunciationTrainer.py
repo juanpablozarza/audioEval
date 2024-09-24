@@ -10,6 +10,7 @@ import AIModels
 import RuleBasedModels
 from string import punctuation
 import time
+import difflib
 
 
 def getTrainer(language: str):
@@ -34,7 +35,44 @@ def getTrainer(language: str):
 
     return trainer
 
+def merge_transcripts(base_transcript: str, second_transcript: str) -> str:
+    try:
+        print("Base transcript: ", base_transcript)
+        print("Second transcript: ", second_transcript)   
+        
+        # Split transcripts into words
+        base_words = base_transcript.split()
+        second_words = second_transcript.split()
 
+        # Use difflib to compare transcripts and find differences
+        d = difflib.Differ()
+        diff = list(d.compare(base_words, second_words))
+        print("Diff: ", diff)   
+        
+        # Initialize the merged transcript
+        merged_transcript = []
+        base_index = 0
+        second_index = 0
+
+        # Iterate over the diff list and resolve conflicts
+        for word in diff:
+            if word.startswith('+ '):  # Word in second_transcript but not in base_transcript
+                merged_transcript.append(word[2:])
+                second_index += 1
+            elif word.startswith('- '):  # Word in base_transcript but not in second_transcript
+                base_index += 1
+            elif word.startswith('  '):  # Word is the same in both transcripts
+                merged_transcript.append(base_words[base_index])
+                base_index += 1
+                second_index += 1
+
+        return ' '.join(merged_transcript)
+    except Exception as e:
+        print(f"Error merging transcripts: {e}")
+        return base_transcript
+    except Exception as e:
+        print(f"Error merging transcripts: {e}")
+        return base_transcript
 class PronunciationTrainer:
     current_transcript: str
     current_ipa: str
@@ -47,18 +85,22 @@ class PronunciationTrainer:
     categories_thresholds = np.array([80, 60, 59])
 
     sampling_rate = 16000
+    
 
     def __init__(self, asr_model: mi.IASRModel, word_to_ipa_coverter: mi.ITextToPhonemModel) -> None:
         self.asr_model = asr_model
         self.ipa_converter = word_to_ipa_coverter
-
+        
     def getTranscriptAndWordsLocations(self, audio_length_in_samples: int, transcription=None):
         audio_transcript = ""
+        second_transcript = self.asr_model.getTranscript()
         if transcription is not None:
-            self.asr_model.audio_transcript = transcription
+            print("Second transcript: ", second_transcript)
+            print("Transcription: ", transcription) 
+            self.asr_model.audio_transcript = merge_transcripts( second_transcript, transcription)
             audio_transcript = self.asr_model.audio_transcript
         else:
-            audio_transcript = self.asr_model.getTranscript()
+            audio_transcript = second_transcript
         print(audio_transcript)
         word_locations_in_samples = self.asr_model.getWordLocations()
         print("Word locations: ", word_locations_in_samples)
