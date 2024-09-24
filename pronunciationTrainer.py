@@ -142,13 +142,15 @@ class PronunciationTrainer:
 
         start_time, end_time = self.getWordLocationsFromRecordInSeconds(
             word_locations, mapped_words_indices)
-
+        print('Time for getting word locations: ', str(time.time()-start))
         pronunciation_accuracy, current_words_pronunciation_accuracy = self.getPronunciationAccuracy(
             real_and_transcribed_words)  # _ipa
-
+        print('Time for calculating pronunciation accuracy: ',
+              str(time.time()-start))
         pronunciation_categories = self.getWordsPronunciationCategory(
             current_words_pronunciation_accuracy)
-
+        print('Time for getting pronunciation categories: ',
+              str(time.time()-start))
         result = {'recording_transcript': recording_transcript,
                   'real_and_transcribed_words': real_and_transcribed_words,
                   'recording_ipa': recording_ipa, 'start_time': start_time, 'end_time': end_time,

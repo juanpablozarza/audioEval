@@ -62,6 +62,7 @@ def lambda_handler(event,context):
 
     result = trainer_SST_lambda[language].processAudioForGivenText(
         signal, real_text, transcription)
+    print('Result: ', result)
 
     start = time.time()
     os.remove(random_file_name)
