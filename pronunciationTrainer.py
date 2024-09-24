@@ -168,7 +168,8 @@ class PronunciationTrainer:
         self.asr_model.processAudio(current_recorded_audio)
 
         current_recorded_transcript, current_recorded_word_locations = self.getTranscriptAndWordsLocations(
-            current_recorded_audio.shape[1], transcription)
+            current_recorded_audio.shape[1], None)
+        
         current_recorded_ipa = self.ipa_converter.convertToPhonem(
             current_recorded_transcript)
 
