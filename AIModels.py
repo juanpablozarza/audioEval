@@ -29,11 +29,13 @@ class NeuralASR(ModelInterfaces.IASRModel):
     def processAudio(self, audio: torch.Tensor):
         """Process the audio"""
         audio_length_in_samples = audio.shape[1]
+        print("Audio length in samples: ", audio_length_in_samples)
         with torch.inference_mode():
             nn_output = self.model(audio)
 
             self.audio_transcript, self.word_locations_in_samples = self.decoder(
                 nn_output[0, :, :].detach(), audio_length_in_samples, word_align=True)
+            print("Audio transcript: ", self.audio_transcript)
 
 
 class NeuralTTS(ModelInterfaces.ITextToSpeechModel):
