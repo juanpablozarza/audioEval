@@ -135,27 +135,41 @@ def GetAccuracyFromRecordedAudio():
     title = request.form['title']
     transcription = request.form.get('transcription', None)
     language = request.form['language']
-    fileDict = ''
-    print(file.filename)
-    
-    if file.filename.endswith('.3gp'):
-        print("3gp")
-        fileDict = convert_3gp_to_base64_ogg(file)
-    elif file.filename.endswith('.mp3'):
-        print("mp3")
-        fileDict = convert_mp3_to_base64_ogg(file)
-    elif file.filename.endswith('.wav'):
-        print("wav")
-        fileDict = convert_wav_to_base64_ogg(file)
-    else:
-        return {"output": "Unsupported file type"}
-    
+    print(f"Received file: {file.filename}, Content-Type: {file.content_type}")
+
+    # Save the uploaded file to a temporary path
+    temp_file_path = f"./{file.filename}"
+    file.save(temp_file_path)
+
+    # Try to read the file with pydub
+    try:
+        if file.content_type == 'audio/webm':
+            audio = AudioSegment.from_file(temp_file_path, format='webm')
+        elif file.content_type == 'audio/ogg':
+            audio = AudioSegment.from_file(temp_file_path, format='ogg')
+        elif file.content_type == 'audio/wav':
+            audio = AudioSegment.from_file(temp_file_path, format='wav')
+        else:
+            # Attempt to let pydub/ffmpeg detect the format
+            audio = AudioSegment.from_file(temp_file_path)
+    except Exception as e:
+        print(f"Could not read audio file: {e}")
+        return {"output": f"Could not read audio file: {e}"}
+
+    # Proceed to export to OGG
+    ogg_buffer = io.BytesIO()
+    audio.export(ogg_buffer, format="ogg")
+    ogg_data = ogg_buffer.getvalue()
+    base64_ogg = base64.b64encode(ogg_data).decode('utf-8')
+    base64_ogg_str = f"data:audio/ogg;base64,{base64_ogg}"
+    print("Converted audio to base64 OGG...")
+
     event = {
         'body': json.dumps({
             "title": title,
-            "base64Audio": fileDict["output"],
+            "base64Audio": base64_ogg_str,
             "language": language,
-            "sampleRate": fileDict['sampleRate'],
+            "sampleRate": audio.frame_rate,
             "transcription": transcription
         })
     }
