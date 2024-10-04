@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_file
 import webbrowser
 import os
 from flask_cors import CORS
@@ -38,36 +38,27 @@ def getNext():
 def convert3gpToMp3():
     file = request.files['file']
     print(f"Received file: {file.filename}, Content-Type: {file.content_type}")
-    convert_3gp_to_mp3(file)
-    return {"output": "Conversion successful!"}
+    response_file = convert_3gp_to_mp3(file)
+    return send_file(response_file, as_attachment=True)
 
 
-def convert_3gp_to_mp3(input_file_path):
-    print("Converting 3gp to mp3:", input_file_path)
+def convert_3gp_to_mp3(file):
+    print("Converting 3gp to mp3")
     try:
-        ext = input_file_path.rsplit('.', 1)[1]
-        print(ext)
+        # Load the file directly from BytesIO using pydub
+        audio = AudioSegment.from_file(file, format="3gp")
 
-        if ext.lower() == 'caf':
-            print("Converting CAF to WAV:", input_file_path)
-            audio = AudioSegment.from_file(input_file_path, format='caf')
-            output_file_path = input_file_path.replace('.caf', '.mp3')
-            audio.export(output_file_path, format='mp3')
-            print(f"Conversion successful! File saved as: {output_file_path}")
-            return
-
-        # Load the 3gp file
-        audio = AudioSegment.from_file(input_file_path, format="3gp")
-
-        # Set the output file path
-        output_file_path = input_file_path.rsplit('.', 1)[0] + ".mp3"
+        # Define an output file path (temporary or a specific location)
+        output_file_path = "/path/to/save/" + file.filename.rsplit('.', 1)[0] + ".mp3"
 
         # Export the audio as mp3
         audio.export(output_file_path, format="mp3")
 
         print(f"Conversion successful! File saved as: {output_file_path}")
+        return output_file_path
     except Exception as e:
         print(f"An error occurred during conversion: {e}")
+        return None
 def convert_wav_to_base64_ogg(file):
     try:
         # Save the uploaded WAV file
