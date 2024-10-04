@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_file
 import webbrowser
 import os
 from flask_cors import CORS
@@ -38,9 +38,8 @@ def getNext():
 def convert3gpToMp3():
     file = request.files['file']
     print(f"Received file: {file.filename}, Content-Type: {file.content_type}")
-    convert_3gp_to_mp3(file)
-    return {"output": "Conversion successful!"}
-
+    mp3_file_path = convert_3gp_to_mp3(file)
+    return send_file(mp3_file_path, as_attachment=True)  # Return the MP3 file
 
 def convert_3gp_to_mp3(input_file_path):
     print("Converting 3gp to mp3:", input_file_path)
@@ -66,6 +65,8 @@ def convert_3gp_to_mp3(input_file_path):
         audio.export(output_file_path, format="mp3")
 
         print(f"Conversion successful! File saved as: {output_file_path}")
+        return output_file_path  # Return the output file path
+
     except Exception as e:
         print(f"An error occurred during conversion: {e}")
 def convert_wav_to_base64_ogg(file):
