@@ -34,6 +34,40 @@ def getNext():
     event = {'body':  json.dumps(request.get_json(force=True))}
     return lambdaGetSample.lambda_handler(event, [])
 
+@app.route(rootPath+'/convert3gpToMp3', methods=['POST'])
+def convert3gpToMp3():
+    file = request.files['file']
+    print(f"Received file: {file.filename}, Content-Type: {file.content_type}")
+    convert_3gp_to_mp3(file)
+    return {"output": "Conversion successful!"}
+
+
+def convert_3gp_to_mp3(input_file_path):
+    print("Converting 3gp to mp3:", input_file_path)
+    try:
+        ext = input_file_path.rsplit('.', 1)[1]
+        print(ext)
+
+        if ext.lower() == 'caf':
+            print("Converting CAF to WAV:", input_file_path)
+            audio = AudioSegment.from_file(input_file_path, format='caf')
+            output_file_path = input_file_path.replace('.caf', '.mp3')
+            audio.export(output_file_path, format='mp3')
+            print(f"Conversion successful! File saved as: {output_file_path}")
+            return
+
+        # Load the 3gp file
+        audio = AudioSegment.from_file(input_file_path, format="3gp")
+
+        # Set the output file path
+        output_file_path = input_file_path.rsplit('.', 1)[0] + ".mp3"
+
+        # Export the audio as mp3
+        audio.export(output_file_path, format="mp3")
+
+        print(f"Conversion successful! File saved as: {output_file_path}")
+    except Exception as e:
+        print(f"An error occurred during conversion: {e}")
 def convert_wav_to_base64_ogg(file):
     try:
         # Save the uploaded WAV file
