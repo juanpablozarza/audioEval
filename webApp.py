@@ -49,7 +49,7 @@ def convert_3gp_to_mp3(file):
         audio = AudioSegment.from_file(file, format="3gp")
 
         # Define an output file path (temporary or a specific location)
-        output_file_path = "/path/to/save/" + file.filename.rsplit('.', 1)[0] + ".mp3"
+        output_file_path = "./" + file.filename.rsplit('.', 1)[0] + ".mp3"
 
         # Export the audio as mp3
         audio.export(output_file_path, format="mp3")
